@@ -104,7 +104,7 @@
       autocomplete="current-password"
     >
 
-    <button onclick="login()">
+    <button id="loginButton" onclick="login()">
       Sign In
     </button>
 
@@ -113,7 +113,6 @@
 
   <section id="dashboard" class="card">
     <h2>Owner Dashboard</h2>
-
     <p id="ownerEmail"></p>
     <p>● Owner authentication active</p>
 
@@ -125,19 +124,7 @@
 </main>
 
 <script>
-  /*
-    IMPORTANT:
-    Replace ONLY these two values.
-
-    SUPABASE_URL:
-      Use the API/Project URL you copied.
-
-    SUPABASE_PUBLISHABLE_KEY:
-      Use your existing sb_... PUBLISHABLE key.
-
-    NEVER put a secret/service-role key here.
-  */
-
+  // PUT YOUR SUPABASE DETAILS HERE
   const SUPABASE_URL = "https://plaentuiwnovqnsispac.supabase.co/rest/v1/";
 
   const SUPABASE_PUBLISHABLE_KEY =
@@ -149,33 +136,29 @@
   );
 
   async function login() {
-
-    const email =
-      document.getElementById("email").value.trim();
-
-    const password =
-      document.getElementById("password").value;
-
-    const message =
-      document.getElementById("message");
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const message = document.getElementById("message");
+    const button = document.getElementById("loginButton");
 
     if (!email || !password) {
-      message.textContent =
-        "Enter your owner email and password.";
+      message.textContent = "Enter your owner email and password.";
       return;
     }
 
+    button.disabled = true;
     message.textContent = "Signing in...";
 
     const { data, error } =
       await supabaseClient.auth.signInWithPassword({
-        email,
-        password
+        email: email,
+        password: password
       });
 
+    button.disabled = false;
+
     if (error) {
-      message.textContent =
-        "Access denied.";
+      message.textContent = "Access denied: " + error.message;
       return;
     }
 
@@ -183,13 +166,31 @@
   }
 
   function showDashboard(user) {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
 
-    document.getElementById("login")
-      .style.display = "none";
+    document.getElementById("ownerEmail").textContent =
+      "Logged in as: " + user.email;
+  }
 
-    document.getElementById("dashboard")
-      .style.display = "block";
+  async function logout() {
+    await supabaseClient.auth.signOut();
 
-    document.getElementById("ownerEmail")
-      .textContent =
-     
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("login").style.display = "block";
+    document.getElementById("message").textContent = "";
+  }
+
+  async function checkSession() {
+    const { data } = await supabaseClient.auth.getSession();
+
+    if (data.session) {
+      showDashboard(data.session.user);
+    }
+  }
+
+  checkSession();
+</script>
+
+</body>
+</html>
