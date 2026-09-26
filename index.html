@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Xmark Specialist</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -22,79 +24,172 @@
     }
 
     .container {
-      width: min(90%, 700px);
+      width: min(92%, 520px);
       text-align: center;
-      padding: 40px 20px;
+      padding: 30px 20px;
     }
 
     h1 {
-      font-size: clamp(42px, 10vw, 80px);
-      margin: 0;
+      font-size: 48px;
+      margin-bottom: 10px;
     }
 
     p {
       color: #aeb3c2;
-      font-size: 17px;
-      line-height: 1.6;
     }
 
-    .panel {
-      margin-top: 30px;
+    .card {
+      margin-top: 25px;
       padding: 25px;
+      background: #11131a;
       border: 1px solid #292c38;
       border-radius: 18px;
-      background: #11131a;
     }
 
-    .status {
-      color: #72f0a3;
-      font-weight: bold;
+    input {
+      width: 100%;
+      padding: 14px;
+      margin: 7px 0;
+      border: 1px solid #30333e;
+      border-radius: 10px;
+      background: #08090d;
+      color: white;
+      outline: none;
     }
 
     button {
-      margin-top: 20px;
-      padding: 12px 20px;
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
       border: 0;
       border-radius: 10px;
-      cursor: pointer;
+      background: white;
+      color: black;
       font-weight: bold;
+      cursor: pointer;
+    }
+
+    #dashboard {
+      display: none;
+    }
+
+    #message {
+      margin-top: 15px;
+      font-size: 14px;
     }
   </style>
 </head>
 
 <body>
 
-  <main class="container">
+<main class="container">
 
-    <h1>Xmark Specialist</h1>
+  <h1>Xmark Specialist</h1>
+  <p>Private owner control panel</p>
 
-    <p>
-      Welcome to the official Xmark Specialist website.
-    </p>
+  <section id="login" class="card">
+    <h2>Owner Login</h2>
 
-    <section class="panel">
-      <h2>System Status</h2>
+    <input
+      id="email"
+      type="email"
+      placeholder="Owner email"
+      autocomplete="email"
+    >
 
-      <div class="status">
-        ● ONLINE
-      </div>
+    <input
+      id="password"
+      type="password"
+      placeholder="Password"
+      autocomplete="current-password"
+    >
 
-      <p>
-        Owner authentication is currently being configured.
-      </p>
+    <button onclick="login()">
+      Sign In
+    </button>
 
-      <button onclick="showStatus()">
-        Check Status
-      </button>
-    </section>
+    <div id="message"></div>
+  </section>
 
-  </main>
+  <section id="dashboard" class="card">
+    <h2>Owner Dashboard</h2>
 
-  <script>
-    function showStatus() {
-      alert("Xmark Specialist is online.");
+    <p id="ownerEmail"></p>
+    <p>● Owner authentication active</p>
+
+    <button onclick="logout()">
+      Log Out
+    </button>
+  </section>
+
+</main>
+
+<script>
+  /*
+    IMPORTANT:
+    Replace ONLY these two values.
+
+    SUPABASE_URL:
+      Use the API/Project URL you copied.
+
+    SUPABASE_PUBLISHABLE_KEY:
+      Use your existing sb_... PUBLISHABLE key.
+
+    NEVER put a secret/service-role key here.
+  */
+
+  const SUPABASE_URL = "PASTE_YOUR_API_URL_HERE";
+
+  const SUPABASE_PUBLISHABLE_KEY =
+    "PASTE_YOUR_SB_PUBLISHABLE_KEY_HERE";
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+  async function login() {
+
+    const email =
+      document.getElementById("email").value.trim();
+
+    const password =
+      document.getElementById("password").value;
+
+    const message =
+      document.getElementById("message");
+
+    if (!email || !password) {
+      message.textContent =
+        "Enter your owner email and password.";
+      return;
     }
-  </script>
 
-</body>
-</html>
+    message.textContent = "Signing in...";
+
+    const { data, error } =
+      await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    if (error) {
+      message.textContent =
+        "Access denied.";
+      return;
+    }
+
+    showDashboard(data.user);
+  }
+
+  function showDashboard(user) {
+
+    document.getElementById("login")
+      .style.display = "none";
+
+    document.getElementById("dashboard")
+      .style.display = "block";
+
+    document.getElementById("ownerEmail")
+      .textContent =
+     
